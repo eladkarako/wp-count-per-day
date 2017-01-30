@@ -1,37 +1,37 @@
 <?php
-  if (!defined('ABSPATH'))
-    exit;
+if (!defined('ABSPATH'))
+  exit;
 
-  $what = (empty($_GET['map'])) ? 'reads' : strip_tags($_GET['map']);
-  if (!$cpd_geoip || !in_array($what, ['visitors', 'reads', 'online']))
-    die();
+$what = (empty($_GET['map'])) ? 'reads' : strip_tags($_GET['map']);
+if (!$cpd_geoip || !in_array($what, ['visitors', 'reads', 'online']))
+  die();
 
-  $cpd_dir = $count_per_day->dir;
-  $data = ['-' => 0];
-  $what = (empty($_GET['map'])) ? 'reads' : strip_tags($_GET['map']);
+$cpd_dir = $count_per_day->dir;
+$data = ['-' => 0];
+$what = (empty($_GET['map'])) ? 'reads' : strip_tags($_GET['map']);
 
-  if ($what == 'online') {
-    require_once(WP_PLUGIN_DIR . '/count-per-day/geoip.php');
-    $oc = get_option('count_per_day_online', []);
-    $gi = geoip_open($cpd_geoip_dir . 'GeoIP.dat', GEOIP_STANDARD);
-    $vo = [];
-    foreach ($oc as $ip => $x) {
-      $country = '-';
-      if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
-        // IPv4 -> IPv6
-        $ip = '::' . $ip;
+if ($what == 'online') {
+  require_once(WP_PLUGIN_DIR . '/count-per-day/geoip.php');
+  $oc = get_option('count_per_day_online', []);
+  $gi = geoip_open($cpd_geoip_dir . 'GeoIP.dat', GEOIP_STANDARD);
+  $vo = [];
+  foreach ($oc as $ip => $x) {
+    $country = '-';
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+      // IPv4 -> IPv6
+      $ip = '::' . $ip;
 
-      if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
-        // IPv6
-        $country = strtoupper(geoip_country_code_by_addr_v6($gi, $ip));
-      $data[ $country ] = (isset($data[ $country ])) ? $data[ $country ] + 1 : 1;
-    }
-  } else {
-    $temp = $count_per_day->addCollectionToCountries(($what == 'visitors'));
-    foreach ($temp as $country => $value)
-      if ($country != '-')
-        $data[ strtoupper($country) ] = $value;
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
+      // IPv6
+      $country = strtoupper(geoip_country_code_by_addr_v6($gi, $ip));
+    $data[ $country ] = (isset($data[ $country ])) ? $data[ $country ] + 1 : 1;
   }
+} else {
+  $temp = $count_per_day->addCollectionToCountries(($what == 'visitors'));
+  foreach ($temp as $country => $value)
+    if ($country != '-')
+      $data[ strtoupper($country) ] = $value;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

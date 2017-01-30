@@ -419,8 +419,8 @@ AmCharts.addPrefix = function (a, b, c, d, f) {
   a = Math.abs(a);
   if (1 < a)for (h = b.length - 1; -1 < h; h--) {
     if (a >= b[h].number && (k = a / b[h].number, l = Number(d.precision), 1 > l && (l = 1), c = AmCharts.roundTo(k, l), l = AmCharts.formatNumber(c, {
-        precision: -1,
-        decimalSeparator: d.decimalSeparator,
+        precision:          -1,
+        decimalSeparator:   d.decimalSeparator,
         thousandsSeparator: d.thousandsSeparator
       }), !f || k == c)) {
       e = g + "" + l + "" + b[h].prefix;
@@ -1834,9 +1834,9 @@ AmCharts.wedge = function (a, b, c, d, f, e, g, h, k, l, m, n) {
   359.94 < x && (x = 359.94);
   f >= x && (f = x);
   var t = 1 / 180 * Math.PI, x = b + Math.sin(d * t) * h, z = c - Math.cos(d * t) * p, A = b + Math.sin(d * t) * e, w = c - Math.cos(d * t) * g, s = b + Math.sin((d + f) * t) * e, u = c - Math.cos((d + f) * t) * g, q = b + Math.sin((d + f) * t) * h, t = c - Math.cos((d + f) * t) * p, y = {
-    fill: AmCharts.adjustLuminosity(l.fill, -.2),
+    fill:             AmCharts.adjustLuminosity(l.fill, -.2),
     "stroke-opacity": 0,
-    "fill-opacity": l["fill-opacity"]
+    "fill-opacity":   l["fill-opacity"]
   }, B = 0;
   180 < Math.abs(f) && (B = 1);
   d = a.set();
@@ -2222,7 +2222,7 @@ AmCharts.AmMap = AmCharts.Class({
       this.linkSet.toFront()
     } else(AmCharts.AmMap.base.initChart.call(this), AmCharts.hasSVG) ? (this.dataChanged && (this.parseData(), this.dispatchDataUpdated = !0, this.dataChanged = !1, a = this.legend) && (a.position = "absolute", a.invalidateSize()), this.mouseWheelZoomEnabled && this.addMouseWheel(), this.createDescriptionsDiv(), this.svgAreas = [], this.svgAreasById = {}, this.drawChart()) : (document.createTextNode(this.svgNotSupported),
       this.chartDiv.style.textAlign = "", this.chartDiv.setAttribute("class", "ammapAlert"), this.chartDiv.innerHTML = this.svgNotSupported, this.fire("failed", {
-      type: "failed",
+      type:  "failed",
       chart: this
     }), clearInterval(this.interval))
   },
