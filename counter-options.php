@@ -8,8 +8,8 @@ if (!defined('ABSPATH'))
   exit;
 
 // check form 
-if (!empty($_POST['do'])) {
-  switch ($_POST['do']) {
+if (true === is_input('do')) {
+  switch (get_input_string('do')) {
     // update options
     case 'cpd_update' :
       $_POST['cpd_bots'] = preg_replace('/\r\n\r\n/', '', $_POST['cpd_bots']);
@@ -883,7 +883,7 @@ switch ($mode) {
           </div> <!-- right column -->
 
 
-        <?php else : // tools tab   ?>
+        <?php else : // tools tab    ?>
 
         <?php $mysiteurl = substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], 'counter-options.php') + 19) . '&amp;tab=options'; ?>
 
