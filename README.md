@@ -1,6 +1,21 @@
 <h1>count-per-day</h1>
 <h2>code fixes and security-boost for (the awesome) wordpress.org/plugins/count-per-day by Tom Braider. Original credits and links kept unmodified.</h2>
 
+major change:
+instead of accessing $_POST(and $GET, $_SERVER, ...) directly-
+- using filter input,
+along with custom filtering, content-validating and sanitizing (even before using any of WordPress' API).
+
+the "plus" is that using filter-input method is "forcing" you to think of the limits each data field may contain, and providing a compatible-code with jenkins' "extreamly-secure-PHP-code-standards" in which forbids direct-accessing input variables and (some) other global variables.
+
+read more at:
+- http://php.net/manual/en/function.filter-input.php
+- http://php.net/manual/en/filter.filters.sanitize.php
+- http://php.net/manual/en/filter.filters.validate.php
+- http://php.net/manual/en/filter.filters.flags.php
+- http://php.net/manual/en/filter.filters.misc.php
+- http://php.net/manual/en/filter.constants.php
+
 <hr/>
 
 === Count per Day ===
