@@ -12,7 +12,7 @@ function is_input_server($attribute) {
 }
 
 function get_input_server_string($attribute) {
-  return filter_input(INPUT_SERVER, $attribute, FILTER_SANITIZE_STRING);
+  return filter_input(INPUT_SERVER, $attribute, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH);
 }
 
 /* -- */

@@ -8,6 +8,7 @@ License: Postcardware
 Author: Tom Braider
 Author URI: http://www.tomsdimension.de
 */
+include_once('safe.php');
 
 if (!defined('ABSPATH'))
   exit;
@@ -15,7 +16,7 @@ if (!defined('ABSPATH'))
 $cpd_dir_name = 'count-per-day';
 $cpd_version = '3.5.6';
 
-if (strpos($_SERVER['SERVER_NAME'], '.test'))
+if (strpos(get_input_server_string('SERVER_NAME'), '.test'))
   $cpd_path = str_replace('/', DIRECTORY_SEPARATOR, ABSPATH . PLUGINDIR . '/' . $cpd_dir_name . '/');
 else
   $cpd_path = dirname(__FILE__) . '/';
@@ -122,19 +123,19 @@ class CountPerDay extends CountPerDayCore {
 
     // only count if: non bot, Logon is ok, no password required or ok
     if (!$isBot && $countUser && isset($page) && !post_password_required($page)) {
-      if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+      if (true === is_input_server('HTTP_X_FORWARDED_FOR')) {
         // get real IP, not local IP
-        $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ips = explode(',', get_input_server_string('HTTP_X_FORWARDED_FOR'));
         $real_ip = $ips[0];
-      } else
-        $real_ip = $_SERVER['REMOTE_ADDR'];
-
+      } else {
+        $real_ip = get_input_server_string('REMOTE_ADDR');
+      }
       $userip = $this->anonymize_ip($real_ip);
 
-      $client = ($this->options['referers']) ? wp_strip_all_tags($_SERVER['HTTP_USER_AGENT']) : '';
+      $client = ($this->options['referers']) ? wp_strip_all_tags(get_input_server_string('HTTP_USER_AGENT')) : '';
       $client = substr($client, 0, $this->options['fieldlen']);
 
-      $referer = ($this->options['referers'] && isset($_SERVER['HTTP_REFERER'])) ? wp_strip_all_tags($_SERVER['HTTP_REFERER']) : '';
+      $referer = ($this->options['referers'] && true === is_input_server('HTTP_REFERER')) ? wp_strip_all_tags(get_input_server_string('HTTP_REFERER'))  :  '';
       $referer = esc_url($referer);
 
       if (filter_var($referer, FILTER_VALIDATE_URL)) {
@@ -494,7 +495,7 @@ class CountPerDay extends CountPerDayCore {
     $limit -= 1;
 
     // last day
-    $end_sql = (isset($_GET['cpd_chart_start'])) ? $_GET['cpd_chart_start'] : date_i18n('Y-m-d');
+    $end_sql = (true === is_input_chartdate('cpd_chart_start')) ? get_input_chartdate('cpd_chart_start') : date_i18n('Y-m-d');
     $end_time = strtotime($end_sql);
     $end_str = mysql2date(get_option('date_format'), $end_sql);
 
@@ -975,12 +976,10 @@ class CountPerDay extends CountPerDayCore {
    */
   function getVisitedPostsOnDay($date = 0, $limit = 0, $show_form = true, $show_notes = true, $frontend = false, $return = false) {
     global $wpdb, $cpd_path, $userdata;
-    if (!empty($_POST['daytoshow']))
-      $date = $_POST['daytoshow'];
-    else if (!empty($_GET['daytoshow']))
-      $date = $_GET['daytoshow'];
-    else if ($date == 0)
-      $date = date_i18n('Y-m-d');
+
+    $date = true === is_input_chartdate('daytoshow') ? get_input_chartdate('daytoshow') : date_i18n('Y-m-d');
+    $date = ("" === $date || 0 === $date) ? date_i18n('Y-m-d') : $date;
+
     $date = wp_strip_all_tags($date);
     if ($limit == 0)
       $limit = $this->options['dashboard_last_posts'];

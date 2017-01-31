@@ -3,19 +3,20 @@ if (!defined('ABSPATH'))
   exit;
 
 // answer only for 20 seconds after calling
-if (empty($_GET['time']) || time() - $_GET['time'] > 20) {
+if (false === is_input_integer('time') || (time() - get_input_integer('time')) > 20) {
   header("HTTP/1.0 403 Forbidden");
   die('wrong request');
 }
 
-if ($_GET['f'] == 'count') {
+if ('count' === get_input_string('f')) {
   $cpd_funcs = ['show',
                 'getReadsAll', 'getReadsToday', 'getReadsYesterday', 'getReadsLastWeek', 'getReadsThisMonth',
                 'getUserAll', 'getUserToday', 'getUserYesterday', 'getUserLastWeek', 'getUserThisMonth',
                 'getUserPerDay', 'getUserOnline', 'getFirstCount'];
 
-  $page = (int)$_GET['cpage'];
-  if (is_numeric($page)) {
+  if (true === is_input_integer('cpage')) {
+    $page = get_input_integer('cpage');
+
     $count_per_day->count('', $page);
     foreach ($cpd_funcs as $f) {
       if (($f == 'show' && $page) || $f != 'show') {
@@ -30,4 +31,5 @@ if ($_GET['f'] == 'count') {
       }
     }
   }
+
 }

@@ -1,14 +1,16 @@
 <?php
+include_once('../safe.php');
+
 if (!defined('ABSPATH'))
   exit;
 
-$what = (empty($_GET['map'])) ? 'reads' : strip_tags($_GET['map']);
+$what = true === is_input('map') ? get_input_string('map') : 'reads';
 if (!$cpd_geoip || !in_array($what, ['visitors', 'reads', 'online']))
   die();
 
 $cpd_dir = $count_per_day->dir;
 $data = ['-' => 0];
-$what = (empty($_GET['map'])) ? 'reads' : strip_tags($_GET['map']);
+$what = true === is_input('map') ? get_input_string('map') : 'reads';
 
 if ($what == 'online') {
   require_once(WP_PLUGIN_DIR . '/count-per-day/geoip.php');

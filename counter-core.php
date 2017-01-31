@@ -3,6 +3,7 @@
  * Filename: counter-core.php
  * Count Per Day - core functions
  */
+include_once('safe.php');
 
 if (!defined('ABSPATH'))
   exit;
@@ -85,7 +86,7 @@ class CountPerDayCore {
     $this->options = get_option('count_per_day');
 
     // manual debug mode
-    if (!empty($_GET['debug']) && WP_DEBUG)
+    if (true === is_input('debug') && WP_DEBUG)
       $this->options['debug'] = 1;
     $this->dir = plugins_url('/' . $cpd_dir_name);
 
@@ -156,7 +157,7 @@ class CountPerDayCore {
     $this->addShortcodes();
 
     // thickbox in backend only
-    if (strpos($_SERVER['SCRIPT_NAME'], '/wp-admin/') !== false)
+    if (false !== strpos(get_input_server_string('SCRIPT_NAME'), '/wp-admin/'))
       add_action('admin_enqueue_scripts', [&$this, 'addThickbox']);
 
     $this->aton = 'INET_ATON';
@@ -208,10 +209,9 @@ class CountPerDayCore {
   function addCpdIncludes() {
     global $count_per_day, $wpdb, $cpd_geoip, $cpd_geoip_dir;
 
-    if (empty($_GET['page']))
-      return;
+    if (false === is_input('page')) return;
 
-    switch ($_GET['page']) {
+    switch (get_input_string('page')) {
       case 'cpd_notes':
         include_once('notes.php');
         exit;
@@ -272,23 +272,24 @@ class CountPerDayCore {
    */
   function checkVersion() {
     global $wpdb;
-    if (function_exists('is_multisite') && is_multisite()) {
-      // check if it is a network activation
-      if (!empty($_GET['networkwide'])) {
-        $old_blog = $wpdb->blogid;
-        $blogids = $wpdb->get_col($wpdb->prepare("SELECT blog_id FROM %s", $wpdb->blogs));
-        foreach ($blogids as $blog_id) {
-          // create tables in all sub blogs
-          switch_to_blog($blog_id);
-          $this->createTables();
-        }
-        switch_to_blog($old_blog);
 
-        return;
+    if (true === function_exists('is_multisite')
+        && true === is_multisite()
+        && true === is_input('networkwide')
+        && "" !== get_input_string('networkwide')
+    ) {
+      $old_blog = $wpdb->blogid;
+      $blogids = $wpdb->get_col($wpdb->prepare("SELECT blog_id FROM %s", $wpdb->blogs));
+      foreach ($blogids as $blog_id) { // create tables in all sub blogs
+        switch_to_blog($blog_id);
+        $this->createTables();
       }
+      switch_to_blog($old_blog);
+
+      return;
     }
-    // create tables in main blog
-    $this->createTables();
+
+    $this->createTables(); // create tables in main blog
   }
 
   /**
@@ -510,12 +511,12 @@ class CountPerDayCore {
    * @param string $ref    referrer
    */
   function isBot($client = '', $bots = '', $ip = '', $ref = '') {
-    if (empty($client) && isset($_SERVER['HTTP_USER_AGENT']))
-      $client = $_SERVER['HTTP_USER_AGENT'];
+    if (empty($client) && is_input_server('HTTP_USER_AGENT'))
+      $client = get_input_server_string('HTTP_USER_AGENT');
     if (empty($ip))
-      $ip = $_SERVER['REMOTE_ADDR'];
-    if (empty($ref) && isset($_SERVER['HTTP_REFERER']))
-      $ref = $_SERVER['HTTP_REFERER'];
+      $ip = get_input_server_string('REMOTE_ADDR');
+    if (empty($ref) && is_input_server('HTTP_REFERER'))
+      $ref = get_input_server_string('HTTP_REFERER');
 
     // empty/short client -> not normal browser -> bot
     if (empty($client) || strlen($client) < 20)
@@ -565,15 +566,15 @@ class CountPerDayCore {
     echo '<div style="position:absolute;margin:10px;padding:10px;border:1px red solid;background:#fff;clear:both">
 		<b>Count per Day - DEBUG: ' . round($this->queries[0], 3) . ' s</b><ol>' . "\n";
     echo '<li>'
-         . '<b>Server:</b> ' . $_SERVER['SERVER_SOFTWARE'] . '<br/>'
+         . '<b>Server:</b> ' . get_input_server_string('SERVER_SOFTWARE') . '<br/>'
          . '<b>PHP:</b> ' . phpversion() . '<br/>'
          . '<b>mySQL Server:</b> ' . $serverinfo . '<br/>'
          . '<b>mySQL Client:</b> ' . $clientinfo . '<br/>'
          . '<b>WordPress:</b> ' . get_bloginfo('version') . '<br/>'
          . '<b>Count per Day:</b> ' . $cpd_version . '<br/>'
          . '<b>Time for Count per Day:</b> ' . date_i18n('Y-m-d H:i') . '<br/>'
-         . '<b>URL:</b> ' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'] . '<br/>'
-         . '<b>Referrer:</b> ' . (isset($_SERVER['HTTP_REFERER']) ? htmlentities($_SERVER['HTTP_REFERER']) : '') . '<br/>'
+         . '<b>URL:</b> ' . get_input_server_string('SERVER_NAME') . get_input_server_string('REQUEST_URI') . '<br/>'
+         . '<b>Referrer:</b> ' . (true === is_input_server('HTTP_REFERER') ? htmlentities(get_input_server_string('HTTP_REFERER')) : '') . '<br/>'
          . '<b>PHP-Memory:</b> peak: ' . $this->formatBytes(memory_get_peak_usage()) . ', limit: ' . ini_get('memory_limit')
          . '</li>';
     echo "\n<li><b>POST:</b><br/>\n";
@@ -636,7 +637,7 @@ class CountPerDayCore {
     if ($text_direction == 'rtl')
       echo "\n" . '<link rel="stylesheet" href="' . $this->dir . '/counter-rtl.css" type="text/css" />' . "\n";
     // thickbox style here because add_thickbox() breaks RTL in he_IL
-    if (strpos($_SERVER['SCRIPT_NAME'], '/wp-admin/') !== false)
+    if (strpos(get_input_server_string('SCRIPT_NAME'), '/wp-admin/') !== false)
       echo '<link rel="stylesheet" href="' . get_bloginfo('wpurl') . '/wp-includes/js/thickbox/thickbox.css" type="text/css" />' . "\n";
   }
 
@@ -644,7 +645,7 @@ class CountPerDayCore {
    * adds javascript to admin header
    */
   function addJS() {
-    if (strpos($_SERVER['QUERY_STRING'], 'cpd_metaboxes') !== false)
+    if (strpos(get_input_server_string('QUERY_STRING'), 'cpd_metaboxes') !== false)
       echo '<!--[if IE]><script type="text/javascript" src="' . $this->dir . '/js/excanvas.min.js"></script><![endif]-->' . "\n";
   }
 
@@ -764,7 +765,7 @@ JSEND;
   function pluginActions($links, $file) {
     global $cpd_dir_name;
     if ($file == $cpd_dir_name . '/counter.php'
-        && strpos($_SERVER['SCRIPT_NAME'], '/network/') === false
+        && strpos(get_input_server_string('SCRIPT_NAME'), '/network/') === false
     ) // not on network plugin page
     {
       $link = '<a href="options-general.php?page=' . $cpd_dir_name . '/counter-options.php">' . __('Settings') . '</a>';
@@ -1162,7 +1163,7 @@ JSEND;
 
     // wp-content or tempdir?
 
-    $path = (empty($_POST['downloadonly']) && is_writable(WP_CONTENT_DIR)) ? WP_CONTENT_DIR . $name : tempnam(sys_get_temp_dir(), 'cpdbackup');
+    $path = (false === is_input('downloadonly') && true === is_writable(WP_CONTENT_DIR)) ? WP_CONTENT_DIR . $name : tempnam(sys_get_temp_dir(), 'cpdbackup');
 
     // open file
     $f = ($gz) ? gzopen($path, 'w9') : fopen($path, 'w');
@@ -1259,7 +1260,7 @@ JSEND;
       $toname = 'count_per_day_options_' . date_i18n('Y-m-d_H-i-s') . '.txt';
       if ($gz) $toname .= '.gz';
       $oname = '/' . $toname;
-      $opath = (empty($_POST['downloadonly']) && is_writable(WP_CONTENT_DIR)) ? WP_CONTENT_DIR . $oname : tempnam(sys_get_temp_dir(), 'cpdbackup');
+      $opath = (false === is_input('downloadonly') && true === is_writable(WP_CONTENT_DIR)) ? WP_CONTENT_DIR . $oname : tempnam(sys_get_temp_dir(), 'cpdbackup');
       $f = ($gz) ? gzopen($opath, 'w9') : fopen($opath, 'w');
 
       foreach (['count_per_day', 'count_per_day_summary', 'count_per_day_collected', 'count_per_day_posts', 'count_per_day_notes'] as $o) {
@@ -1316,13 +1317,14 @@ JSEND;
   function restore() {
     global $wpdb;
 
-    if (empty($_GET['_wpnonce']) || !wp_verify_nonce($_GET['_wpnonce'], 'cpdnonce')
-        || (empty($_GET['cpdrestore']) && empty($_GET['cpdadding']))
-    )
-      return;
 
-    $doadding = (isset($_GET['cpdadding'])) ? 1 : 0;
-    $path = WP_CONTENT_DIR . '/' . (($doadding) ? $_GET['cpdadding'] : $_GET['cpdrestore']);
+    if (false === is_input('_wpnonce')
+        || !wp_verify_nonce(get_input_string('_wpnonce'), 'cpdnonce')
+        || (false === is_input('cpdrestore') && false === is_input('cpdadding'))
+    ) return;
+
+    $doadding = true === is_input('cpdadding') ? 1 : 0;
+    $path = WP_CONTENT_DIR . '/' . (true === is_input('cpdadding') ? get_input_string('cpdadding') : get_input_string('cpdrestore');
 
     if (isset($path) && preg_match('/count_per_day|cpd_counter/i', $path) && file_exists($path)) {
       $gz = (substr($path, -3) == '.gz') ? 1 : 0;
@@ -1547,9 +1549,10 @@ JSEND;
    * try to get the search strings from referrer
    */
   function getSearchString() {
-    if (empty($_SERVER['HTTP_REFERER']))
-      return false;
-    $ref = parse_url(rawurldecode(wp_strip_all_tags($_SERVER['HTTP_REFERER'])));
+    if (false === is_input_server('HTTP_REFERER')) return false;
+
+    $ref = parse_url(rawurldecode(wp_strip_all_tags(get_input_server_string('HTTP_REFERER'))));
+
     if (empty($ref['host']) || empty($ref['query']))
       return false;
     $keys = ['p', 'q', 's', 'query', 'search', 'prev', 'qkw', 'qry'];
