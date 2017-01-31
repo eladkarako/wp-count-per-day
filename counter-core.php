@@ -1324,7 +1324,7 @@ JSEND;
     ) return;
 
     $doadding = true === is_input('cpdadding') ? 1 : 0;
-    $path = WP_CONTENT_DIR . '/' . (true === is_input('cpdadding') ? get_input_string('cpdadding') : get_input_string('cpdrestore');
+    $path = WP_CONTENT_DIR . '/' . (true === is_input('cpdadding') ? get_input_string('cpdadding') : get_input_string('cpdrestore'));
 
     if (isset($path) && preg_match('/count_per_day|cpd_counter/i', $path) && file_exists($path)) {
       $gz = (substr($path, -3) == '.gz') ? 1 : 0;
