@@ -577,7 +577,17 @@ class CountPerDayCore {
          . '<b>PHP-Memory:</b> peak: ' . $this->formatBytes(memory_get_peak_usage()) . ', limit: ' . ini_get('memory_limit')
          . '</li>';
     echo "\n<li><b>POST:</b><br/>\n";
-    var_dump($_POST);
+    var_dump(json_encode(
+               $_POST
+               ,
+               0
+               | JSON_HEX_APOS             // All ' are converted to \u0027.
+               | JSON_HEX_QUOT             // All " are converted to \u0022.
+               | JSON_HEX_AMP              // All &#38;#38;s are converted to \u0026.
+               | JSON_HEX_TAG              // All &lt; and &gt; are converted to \u003C and \u003E.
+               | JSON_NUMERIC_CHECK        // Encodes numeric strings as numbers.
+               | JSON_PRETTY_PRINT         // Use whitespace in returned data to format it
+             ));
     echo '</li>';
     echo '</li>';
     echo "\n<li><b>Table:</b><br /><b>$wpdb->cpd_counter</b>:\n";
@@ -1151,6 +1161,7 @@ JSEND;
     $name = '/' . $tname;
 
     // wp-content or tempdir?
+
     $path = (empty($_POST['downloadonly']) && is_writable(WP_CONTENT_DIR)) ? WP_CONTENT_DIR . $name : tempnam(sys_get_temp_dir(), 'cpdbackup');
 
     // open file
